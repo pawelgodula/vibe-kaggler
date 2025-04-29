@@ -52,6 +52,29 @@ def calculate_correlations(
     else:
         numeric_features = [col for col in df.columns if df[col].dtype.is_numeric() and col != target_col]
 
+    # Filter out features with zero standard deviation to avoid NaN in correlation
+    if numeric_features:
+        stds = df.select(numeric_features).std().row(0)
+        features_with_variance = [
+            feat for feat, std_val in zip(numeric_features, stds) 
+            if std_val is not None and std_val > 1e-9 # Use a small epsilon for float comparison
+        ]
+        if len(features_with_variance) < len(numeric_features):
+            removed_features = set(numeric_features) - set(features_with_variance)
+            print(f"Warning: Removed features with zero variance: {removed_features}")
+        numeric_features = features_with_variance
+
+    # Check for remaining NaNs in the selected numeric features
+    if numeric_features:
+        nan_check = df.select(numeric_features).null_count()
+        cols_with_nans = [
+            col for col in numeric_features if nan_check[col][0] > 0
+        ]
+        if cols_with_nans:
+            print(f"Warning: The following numeric features still contain NaN values after filtering: {cols_with_nans}")
+            # Depending on desired behavior, you might want to drop rows with NaNs or fill them
+            # For now, we'll just report them.
+
     is_target_numeric = df[target_col].dtype.is_numeric()
 
     if not numeric_features:
@@ -64,11 +87,16 @@ def calculate_correlations(
     # Calculate feature-feature correlations
     if len(numeric_features) >= 2:
         try:
-            feature_corr_matrix = df.select(numeric_features).corr()
+            # Select only the numeric features and drop rows with any NaNs in this subset
+            df_ff_corr = df.select(numeric_features).drop_nulls()
+            print(f"Original df shape: {df.shape}, Shape after dropping NaNs for feature-feature correlation: {df_ff_corr.shape}")
+            feature_corr_matrix = df_ff_corr.corr()
             # Add the feature names as the first column for clarity
+            # Ensure feature names list matches the columns in the correlation matrix
+            feature_names_in_corr = df_ff_corr.columns # Use columns from the NaN-dropped df
             feature_corr_matrix = feature_corr_matrix.with_columns(
-                pl.Series("feature", numeric_features)
-            ).select(["feature"] + numeric_features)
+                pl.Series("feature", feature_names_in_corr)
+            ).select(["feature"] + feature_names_in_corr)
         except Exception as e:
             print(f"Warning: Could not compute feature-feature correlations: {e}")
             feature_corr_matrix = None
@@ -79,11 +107,16 @@ def calculate_correlations(
     if is_target_numeric:
         cols_for_target_corr = numeric_features + [target_col]
         try:
-            full_corr = df.select(cols_for_target_corr).corr()
+            # Select features and target, then drop rows with any NaNs in this subset
+            df_ft_corr = df.select(cols_for_target_corr).drop_nulls()
+            print(f"Original df shape: {df.shape}, Shape after dropping NaNs for feature-target correlation: {df_ft_corr.shape}")
+            full_corr = df_ft_corr.corr()
             # Extract the target column correlations, excluding target-target corr
-            target_corr_series = full_corr.select(pl.col(target_col)).to_series()[:-1] 
+            # Ensure we use the feature list from the NaN-dropped df (excluding target)
+            features_in_ft_corr = [col for col in df_ft_corr.columns if col != target_col]
+            target_corr_series = full_corr.select(pl.col(target_col)).get_column(target_col)[:-1] # Excludes target-target corr
             target_corr = pl.DataFrame({
-                "feature": numeric_features,
+                "feature": features_in_ft_corr, # Features used in this specific corr calculation
                 f"{target_col}_correlation": target_corr_series
             }).sort(f"{target_col}_correlation", descending=True, nulls_last=True)
         except Exception as e:

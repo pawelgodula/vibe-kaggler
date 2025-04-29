@@ -15,8 +15,8 @@ from typing import Optional
 def setup_logging(
     log_level: str = 'INFO',
     log_file: Optional[str] = None
-) -> None:
-    """Configures the root logger.
+) -> logging.Logger:
+    """Configures the root logger and returns it.
 
     Removes existing handlers and adds a new one (Stream or File).
 
@@ -62,6 +62,8 @@ def setup_logging(
     
     # Set the level on the root logger
     root_logger.setLevel(level)
+    
+    return root_logger # Return the configured root logger
 
 # Example usage:
 # if __name__ == '__main__':

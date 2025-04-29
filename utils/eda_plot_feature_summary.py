@@ -71,7 +71,7 @@ def plot_feature_summary(
     ax1.set_xlabel(f'{feature_col} (Value/Bin)')
     ax1.set_ylabel(f'{plot_metric.capitalize()} {target_col}', color=color_metric)
     ax1.tick_params(axis='y', labelcolor=color_metric)
-    ax1.tick_params(axis='x', rotation=45, ha='right')
+    ax1.tick_params(axis='x', rotation=45)
     ax1.grid(axis='y', linestyle='--', alpha=0.7)
     
     if include_count:

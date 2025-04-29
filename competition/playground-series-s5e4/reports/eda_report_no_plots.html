@@ -1,0 +1,1234 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDA Report: playground-series-s5e4</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; }
+        h1, h2, h3 { color: #333; }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #eee; border-radius: 5px; background-color: #f9f9f9; }
+        .plot-container { text-align: center; margin-bottom: 20px; }
+        img { max-width: 90%; height: auto; border: 1px solid #ddd; }
+        table { border-collapse: collapse; width: auto; margin: 20px auto; border: 1px solid #ccc; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        pre { background-color: #eee; padding: 10px; border-radius: 3px; white-space: pre-wrap; word-wrap: break-word; }
+        details > summary { cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        details > summary::marker { content: 'B6  '; /* Right-pointing triangle */ }
+        details[open] > summary::marker { content: 'BC  '; /* Down-pointing triangle */ }
+    </style>
+</head>
+<body>
+<h1>EDA Report: playground-series-s5e4</h1>
+<p>Report generated on: 2025-04-29 09:56:00</p>
+
+
+<div class="section">
+<h2>0. Data Summary & Overview</h2>
+
+
+<div>
+    <h3>Feature Summary Statistics</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Column</th>
+      <th>DataType</th>
+      <th>NumUnique</th>
+      <th>NumNull</th>
+      <th>PctNull</th>
+      <th>Mean</th>
+      <th>StdDev</th>
+      <th>Median</th>
+      <th>Min</th>
+      <th>Max</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>id</td>
+      <td>Int64</td>
+      <td>750000</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>374999.500000</td>
+      <td>216506.495284</td>
+      <td>374999.50000</td>
+      <td>0.0</td>
+      <td>749999.00</td>
+    </tr>
+    <tr>
+      <td>Podcast_Name</td>
+      <td>String</td>
+      <td>48</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Episode_Title</td>
+      <td>String</td>
+      <td>100</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Episode_Length_minutes</td>
+      <td>Float64</td>
+      <td>12269</td>
+      <td>87093</td>
+      <td>11.61</td>
+      <td>64.504738</td>
+      <td>32.969603</td>
+      <td>63.84000</td>
+      <td>0.0</td>
+      <td>325.24</td>
+    </tr>
+    <tr>
+      <td>Genre</td>
+      <td>String</td>
+      <td>10</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Host_Popularity_percentage</td>
+      <td>Float64</td>
+      <td>8038</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>59.859901</td>
+      <td>22.873098</td>
+      <td>60.05000</td>
+      <td>1.3</td>
+      <td>119.46</td>
+    </tr>
+    <tr>
+      <td>Publication_Day</td>
+      <td>String</td>
+      <td>7</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Publication_Time</td>
+      <td>String</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Guest_Popularity_percentage</td>
+      <td>Float64</td>
+      <td>10020</td>
+      <td>146030</td>
+      <td>19.47</td>
+      <td>52.236449</td>
+      <td>28.451241</td>
+      <td>53.58000</td>
+      <td>0.0</td>
+      <td>119.91</td>
+    </tr>
+    <tr>
+      <td>Number_of_Ads</td>
+      <td>Float64</td>
+      <td>13</td>
+      <td>1</td>
+      <td>0.00</td>
+      <td>1.348855</td>
+      <td>1.151130</td>
+      <td>1.00000</td>
+      <td>0.0</td>
+      <td>103.91</td>
+    </tr>
+    <tr>
+      <td>Episode_Sentiment</td>
+      <td>String</td>
+      <td>3</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <td>Listening_Time_minutes</td>
+      <td>Float64</td>
+      <td>42807</td>
+      <td>0</td>
+      <td>0.00</td>
+      <td>45.437406</td>
+      <td>27.138306</td>
+      <td>43.37946</td>
+      <td>0.0</td>
+      <td>119.97</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+</div>
+
+
+<div class="section">
+<h2>1. Target Variable Distribution</h2>
+
+
+
+
+
+</div>
+
+
+<div class="section">
+<h2>2. Correlation Analysis</h2>
+
+
+
+
+
+<div>
+    <h3>Feature Correlation Matrix (Table)</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature</th>
+      <th>id</th>
+      <th>Episode_Length_minutes</th>
+      <th>Host_Popularity_percentage</th>
+      <th>Guest_Popularity_percentage</th>
+      <th>Number_of_Ads</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>id</td>
+      <td>1.000000</td>
+      <td>0.000815</td>
+      <td>0.001184</td>
+      <td>0.000999</td>
+      <td>0.001070</td>
+    </tr>
+    <tr>
+      <td>Episode_Length_minutes</td>
+      <td>0.000815</td>
+      <td>1.000000</td>
+      <td>0.021051</td>
+      <td>-0.009705</td>
+      <td>-0.051002</td>
+    </tr>
+    <tr>
+      <td>Host_Popularity_percentage</td>
+      <td>0.001184</td>
+      <td>0.021051</td>
+      <td>1.000000</td>
+      <td>0.023080</td>
+      <td>-0.021091</td>
+    </tr>
+    <tr>
+      <td>Guest_Popularity_percentage</td>
+      <td>0.000999</td>
+      <td>-0.009705</td>
+      <td>0.023080</td>
+      <td>1.000000</td>
+      <td>0.008209</td>
+    </tr>
+    <tr>
+      <td>Number_of_Ads</td>
+      <td>0.001070</td>
+      <td>-0.051002</td>
+      <td>-0.021091</td>
+      <td>0.008209</td>
+      <td>1.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+
+<div>
+    <h3>Feature Correlation with Listening_Time_minutes (Table)</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature</th>
+      <th>Listening_Time_minutes_correlation</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Episode_Length_minutes</td>
+      <td>0.915462</td>
+    </tr>
+    <tr>
+      <td>Host_Popularity_percentage</td>
+      <td>0.046111</td>
+    </tr>
+    <tr>
+      <td>id</td>
+      <td>0.000668</td>
+    </tr>
+    <tr>
+      <td>Guest_Popularity_percentage</td>
+      <td>-0.013251</td>
+    </tr>
+    <tr>
+      <td>Number_of_Ads</td>
+      <td>-0.115430</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+</div>
+
+
+<div class="section">
+<h2>3. Individual Feature Analysis</h2>
+
+<details><summary>id</summary>
+<div><h3>Analysis for Feature: id</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by id</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q1</td>
+      <td>75000</td>
+      <td>45.601656</td>
+      <td>43.693700</td>
+    </tr>
+    <tr>
+      <td>q2</td>
+      <td>75000</td>
+      <td>45.316433</td>
+      <td>43.213910</td>
+    </tr>
+    <tr>
+      <td>q3</td>
+      <td>75000</td>
+      <td>45.483836</td>
+      <td>43.462470</td>
+    </tr>
+    <tr>
+      <td>q4</td>
+      <td>75000</td>
+      <td>45.510500</td>
+      <td>43.391500</td>
+    </tr>
+    <tr>
+      <td>q5</td>
+      <td>75000</td>
+      <td>45.376551</td>
+      <td>43.248685</td>
+    </tr>
+    <tr>
+      <td>q6</td>
+      <td>75000</td>
+      <td>45.354108</td>
+      <td>43.214780</td>
+    </tr>
+    <tr>
+      <td>q7</td>
+      <td>75000</td>
+      <td>45.497003</td>
+      <td>43.426775</td>
+    </tr>
+    <tr>
+      <td>q8</td>
+      <td>75000</td>
+      <td>45.363013</td>
+      <td>43.341270</td>
+    </tr>
+    <tr>
+      <td>q9</td>
+      <td>75000</td>
+      <td>45.389709</td>
+      <td>43.273170</td>
+    </tr>
+    <tr>
+      <td>q10</td>
+      <td>75000</td>
+      <td>45.481253</td>
+      <td>43.392780</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Podcast_Name</summary>
+<div><h3>Analysis for Feature: Podcast_Name</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Podcast_Name</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sports Weekly</td>
+      <td>20053</td>
+      <td>46.965997</td>
+      <td>45.712230</td>
+    </tr>
+    <tr>
+      <td>Tech Trends</td>
+      <td>19549</td>
+      <td>44.555055</td>
+      <td>40.551070</td>
+    </tr>
+    <tr>
+      <td>Fitness First</td>
+      <td>19488</td>
+      <td>45.623602</td>
+      <td>45.277020</td>
+    </tr>
+    <tr>
+      <td>Style Guide</td>
+      <td>19364</td>
+      <td>45.073646</td>
+      <td>42.654250</td>
+    </tr>
+    <tr>
+      <td>Detective Diaries</td>
+      <td>17452</td>
+      <td>46.755035</td>
+      <td>45.039610</td>
+    </tr>
+    <tr>
+      <td>Tune Time</td>
+      <td>17254</td>
+      <td>46.898123</td>
+      <td>43.644580</td>
+    </tr>
+    <tr>
+      <td>Business Briefs</td>
+      <td>17012</td>
+      <td>47.121103</td>
+      <td>45.570450</td>
+    </tr>
+    <tr>
+      <td>Sports Central</td>
+      <td>16191</td>
+      <td>41.800348</td>
+      <td>39.945060</td>
+    </tr>
+    <tr>
+      <td>Comedy Corner</td>
+      <td>15927</td>
+      <td>43.930314</td>
+      <td>41.465750</td>
+    </tr>
+    <tr>
+      <td>Sport Spot</td>
+      <td>14778</td>
+      <td>44.705584</td>
+      <td>43.399915</td>
+    </tr>
+    <tr>
+      <td>Laugh Line</td>
+      <td>14673</td>
+      <td>44.318328</td>
+      <td>41.658580</td>
+    </tr>
+    <tr>
+      <td>World Watch</td>
+      <td>14043</td>
+      <td>44.103977</td>
+      <td>42.488140</td>
+    </tr>
+    <tr>
+      <td>Global News</td>
+      <td>13649</td>
+      <td>45.433942</td>
+      <td>43.270000</td>
+    </tr>
+    <tr>
+      <td>Mind &amp; Body</td>
+      <td>13639</td>
+      <td>46.840078</td>
+      <td>45.977260</td>
+    </tr>
+    <tr>
+      <td>Daily Digest</td>
+      <td>13391</td>
+      <td>45.697657</td>
+      <td>43.797740</td>
+    </tr>
+    <tr>
+      <td>Money Matters</td>
+      <td>13380</td>
+      <td>47.883883</td>
+      <td>45.937740</td>
+    </tr>
+    <tr>
+      <td>Market Masters</td>
+      <td>13092</td>
+      <td>46.159450</td>
+      <td>43.545455</td>
+    </tr>
+    <tr>
+      <td>Music Matters</td>
+      <td>12652</td>
+      <td>46.089154</td>
+      <td>42.953060</td>
+    </tr>
+    <tr>
+      <td>Healthy Living</td>
+      <td>12198</td>
+      <td>44.972032</td>
+      <td>42.684130</td>
+    </tr>
+    <tr>
+      <td>Brain Boost</td>
+      <td>11543</td>
+      <td>44.409651</td>
+      <td>42.684130</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Episode_Title</summary>
+<div><h3>Analysis for Feature: Episode_Title</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Episode_Title</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Episode 62</td>
+      <td>10373</td>
+      <td>42.942350</td>
+      <td>39.052780</td>
+    </tr>
+    <tr>
+      <td>Episode 69</td>
+      <td>9864</td>
+      <td>44.644999</td>
+      <td>42.338890</td>
+    </tr>
+    <tr>
+      <td>Episode 23</td>
+      <td>9762</td>
+      <td>44.307972</td>
+      <td>40.924365</td>
+    </tr>
+    <tr>
+      <td>Episode 63</td>
+      <td>9743</td>
+      <td>40.621122</td>
+      <td>35.224520</td>
+    </tr>
+    <tr>
+      <td>Episode 51</td>
+      <td>8985</td>
+      <td>45.192974</td>
+      <td>42.784500</td>
+    </tr>
+    <tr>
+      <td>Episode 35</td>
+      <td>7912</td>
+      <td>49.000465</td>
+      <td>48.674165</td>
+    </tr>
+    <tr>
+      <td>Episode 8</td>
+      <td>7690</td>
+      <td>44.840443</td>
+      <td>42.061220</td>
+    </tr>
+    <tr>
+      <td>Episode 28</td>
+      <td>7561</td>
+      <td>45.045553</td>
+      <td>42.809920</td>
+    </tr>
+    <tr>
+      <td>Episode 20</td>
+      <td>7537</td>
+      <td>47.985369</td>
+      <td>45.817320</td>
+    </tr>
+    <tr>
+      <td>Episode 18</td>
+      <td>7379</td>
+      <td>44.430404</td>
+      <td>41.667440</td>
+    </tr>
+    <tr>
+      <td>Episode 59</td>
+      <td>7338</td>
+      <td>49.306814</td>
+      <td>48.298160</td>
+    </tr>
+    <tr>
+      <td>Episode 13</td>
+      <td>7212</td>
+      <td>44.078215</td>
+      <td>41.988800</td>
+    </tr>
+    <tr>
+      <td>Episode 36</td>
+      <td>7144</td>
+      <td>45.691680</td>
+      <td>44.883310</td>
+    </tr>
+    <tr>
+      <td>Episode 3</td>
+      <td>6943</td>
+      <td>41.225424</td>
+      <td>39.000510</td>
+    </tr>
+    <tr>
+      <td>Episode 45</td>
+      <td>6843</td>
+      <td>50.551025</td>
+      <td>50.200000</td>
+    </tr>
+    <tr>
+      <td>Episode 97</td>
+      <td>6521</td>
+      <td>43.813214</td>
+      <td>41.791500</td>
+    </tr>
+    <tr>
+      <td>Episode 7</td>
+      <td>6369</td>
+      <td>42.831025</td>
+      <td>41.101320</td>
+    </tr>
+    <tr>
+      <td>Episode 57</td>
+      <td>6154</td>
+      <td>46.954805</td>
+      <td>45.292130</td>
+    </tr>
+    <tr>
+      <td>Episode 17</td>
+      <td>5171</td>
+      <td>47.512450</td>
+      <td>45.474660</td>
+    </tr>
+    <tr>
+      <td>Episode 25</td>
+      <td>5117</td>
+      <td>51.221690</td>
+      <td>51.471560</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Episode_Length_minutes</summary>
+<div><h3>Analysis for Feature: Episode_Length_minutes</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Episode_Length_minutes</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q1</td>
+      <td>66367</td>
+      <td>6.654861</td>
+      <td>6.53000</td>
+    </tr>
+    <tr>
+      <td>q2</td>
+      <td>66218</td>
+      <td>16.453313</td>
+      <td>16.40000</td>
+    </tr>
+    <tr>
+      <td>q3</td>
+      <td>66389</td>
+      <td>23.768517</td>
+      <td>23.92257</td>
+    </tr>
+    <tr>
+      <td>q4</td>
+      <td>66226</td>
+      <td>32.509177</td>
+      <td>32.92002</td>
+    </tr>
+    <tr>
+      <td>q5</td>
+      <td>66321</td>
+      <td>41.430550</td>
+      <td>41.68947</td>
+    </tr>
+    <tr>
+      <td>q6</td>
+      <td>66287</td>
+      <td>49.251887</td>
+      <td>49.14565</td>
+    </tr>
+    <tr>
+      <td>q7</td>
+      <td>66236</td>
+      <td>58.469091</td>
+      <td>58.20311</td>
+    </tr>
+    <tr>
+      <td>q8</td>
+      <td>66329</td>
+      <td>68.173252</td>
+      <td>68.15908</td>
+    </tr>
+    <tr>
+      <td>q9</td>
+      <td>66254</td>
+      <td>75.687998</td>
+      <td>75.58890</td>
+    </tr>
+    <tr>
+      <td>q10</td>
+      <td>66280</td>
+      <td>85.036395</td>
+      <td>85.22810</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Genre</summary>
+<div><h3>Analysis for Feature: Genre</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Genre</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sports</td>
+      <td>87606</td>
+      <td>44.935722</td>
+      <td>43.467305</td>
+    </tr>
+    <tr>
+      <td>Technology</td>
+      <td>86256</td>
+      <td>45.634749</td>
+      <td>42.899730</td>
+    </tr>
+    <tr>
+      <td>True Crime</td>
+      <td>85059</td>
+      <td>46.042507</td>
+      <td>44.060490</td>
+    </tr>
+    <tr>
+      <td>Lifestyle</td>
+      <td>82461</td>
+      <td>45.523117</td>
+      <td>43.533900</td>
+    </tr>
+    <tr>
+      <td>Comedy</td>
+      <td>81453</td>
+      <td>44.426441</td>
+      <td>41.945080</td>
+    </tr>
+    <tr>
+      <td>Business</td>
+      <td>80521</td>
+      <td>45.538151</td>
+      <td>43.303140</td>
+    </tr>
+    <tr>
+      <td>Health</td>
+      <td>71416</td>
+      <td>45.741413</td>
+      <td>44.510890</td>
+    </tr>
+    <tr>
+      <td>News</td>
+      <td>63385</td>
+      <td>44.406144</td>
+      <td>42.003820</td>
+    </tr>
+    <tr>
+      <td>Music</td>
+      <td>62743</td>
+      <td>46.578394</td>
+      <td>44.220000</td>
+    </tr>
+    <tr>
+      <td>Education</td>
+      <td>49100</td>
+      <td>45.736640</td>
+      <td>43.942355</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Host_Popularity_percentage</summary>
+<div><h3>Analysis for Feature: Host_Popularity_percentage</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Host_Popularity_percentage</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q1</td>
+      <td>75029</td>
+      <td>44.790724</td>
+      <td>42.44216</td>
+    </tr>
+    <tr>
+      <td>q2</td>
+      <td>75052</td>
+      <td>45.520747</td>
+      <td>44.06447</td>
+    </tr>
+    <tr>
+      <td>q3</td>
+      <td>75025</td>
+      <td>44.473593</td>
+      <td>43.14707</td>
+    </tr>
+    <tr>
+      <td>q4</td>
+      <td>74970</td>
+      <td>43.602290</td>
+      <td>40.61381</td>
+    </tr>
+    <tr>
+      <td>q5</td>
+      <td>74985</td>
+      <td>42.886840</td>
+      <td>40.91623</td>
+    </tr>
+    <tr>
+      <td>q6</td>
+      <td>75060</td>
+      <td>43.653052</td>
+      <td>41.75854</td>
+    </tr>
+    <tr>
+      <td>q7</td>
+      <td>74936</td>
+      <td>44.873253</td>
+      <td>42.91196</td>
+    </tr>
+    <tr>
+      <td>q8</td>
+      <td>74949</td>
+      <td>45.649705</td>
+      <td>43.04352</td>
+    </tr>
+    <tr>
+      <td>q9</td>
+      <td>75067</td>
+      <td>49.631389</td>
+      <td>48.52700</td>
+    </tr>
+    <tr>
+      <td>q10</td>
+      <td>74927</td>
+      <td>49.292836</td>
+      <td>47.53791</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Publication_Day</summary>
+<div><h3>Analysis for Feature: Publication_Day</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Publication_Day</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Sunday</td>
+      <td>115946</td>
+      <td>44.817398</td>
+      <td>42.841590</td>
+    </tr>
+    <tr>
+      <td>Monday</td>
+      <td>111963</td>
+      <td>45.969630</td>
+      <td>44.229340</td>
+    </tr>
+    <tr>
+      <td>Friday</td>
+      <td>108237</td>
+      <td>45.206591</td>
+      <td>42.894310</td>
+    </tr>
+    <tr>
+      <td>Wednesday</td>
+      <td>107886</td>
+      <td>45.807177</td>
+      <td>44.505370</td>
+    </tr>
+    <tr>
+      <td>Thursday</td>
+      <td>104360</td>
+      <td>44.869706</td>
+      <td>42.231935</td>
+    </tr>
+    <tr>
+      <td>Saturday</td>
+      <td>103505</td>
+      <td>45.326775</td>
+      <td>42.257780</td>
+    </tr>
+    <tr>
+      <td>Tuesday</td>
+      <td>98103</td>
+      <td>46.131411</td>
+      <td>44.410630</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Publication_Time</summary>
+<div><h3>Analysis for Feature: Publication_Time</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Publication_Time</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Night</td>
+      <td>196849</td>
+      <td>46.456655</td>
+      <td>44.831020</td>
+    </tr>
+    <tr>
+      <td>Evening</td>
+      <td>195778</td>
+      <td>44.761567</td>
+      <td>42.453110</td>
+    </tr>
+    <tr>
+      <td>Afternoon</td>
+      <td>179460</td>
+      <td>45.525603</td>
+      <td>43.554655</td>
+    </tr>
+    <tr>
+      <td>Morning</td>
+      <td>177913</td>
+      <td>44.964415</td>
+      <td>42.503700</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Guest_Popularity_percentage</summary>
+<div><h3>Analysis for Feature: Guest_Popularity_percentage</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Guest_Popularity_percentage</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q1</td>
+      <td>60413</td>
+      <td>46.067202</td>
+      <td>43.88887</td>
+    </tr>
+    <tr>
+      <td>q2</td>
+      <td>60413</td>
+      <td>47.632134</td>
+      <td>44.67099</td>
+    </tr>
+    <tr>
+      <td>q3</td>
+      <td>60395</td>
+      <td>46.334975</td>
+      <td>44.45205</td>
+    </tr>
+    <tr>
+      <td>q4</td>
+      <td>60382</td>
+      <td>43.912001</td>
+      <td>42.56673</td>
+    </tr>
+    <tr>
+      <td>q5</td>
+      <td>60395</td>
+      <td>44.327873</td>
+      <td>40.13843</td>
+    </tr>
+    <tr>
+      <td>q6</td>
+      <td>60388</td>
+      <td>46.005999</td>
+      <td>43.57000</td>
+    </tr>
+    <tr>
+      <td>q7</td>
+      <td>60538</td>
+      <td>44.990132</td>
+      <td>42.63155</td>
+    </tr>
+    <tr>
+      <td>q8</td>
+      <td>60427</td>
+      <td>45.288300</td>
+      <td>43.39227</td>
+    </tr>
+    <tr>
+      <td>q9</td>
+      <td>60239</td>
+      <td>45.075464</td>
+      <td>43.76000</td>
+    </tr>
+    <tr>
+      <td>q10</td>
+      <td>60380</td>
+      <td>45.120921</td>
+      <td>43.31855</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Number_of_Ads</summary>
+<div><h3>Analysis for Feature: Number_of_Ads</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Number_of_Ads</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>q1</td>
+      <td>217592</td>
+      <td>49.073105</td>
+      <td>47.71843</td>
+    </tr>
+    <tr>
+      <td>q3</td>
+      <td>214069</td>
+      <td>47.273397</td>
+      <td>45.23835</td>
+    </tr>
+    <tr>
+      <td>q6</td>
+      <td>158156</td>
+      <td>43.214216</td>
+      <td>41.32526</td>
+    </tr>
+    <tr>
+      <td>q8</td>
+      <td>160173</td>
+      <td>40.237940</td>
+      <td>38.41093</td>
+    </tr>
+    <tr>
+      <td>q10</td>
+      <td>9</td>
+      <td>80.854356</td>
+      <td>103.12686</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+<details><summary>Episode_Sentiment</summary>
+<div><h3>Analysis for Feature: Episode_Sentiment</h3>
+
+
+
+
+<div>
+    <h3>Target Summary by Episode_Sentiment</h3>
+    <table class="dataframe dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>feature_value</th>
+      <th>count</th>
+      <th>target_mean</th>
+      <th>target_median</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Neutral</td>
+      <td>251291</td>
+      <td>45.499110</td>
+      <td>43.46847</td>
+    </tr>
+    <tr>
+      <td>Negative</td>
+      <td>250116</td>
+      <td>44.096838</td>
+      <td>42.00041</td>
+    </tr>
+    <tr>
+      <td>Positive</td>
+      <td>248593</td>
+      <td>46.723815</td>
+      <td>44.92842</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+</div></details>
+
+</div>
+
+
+</body>
+</html>

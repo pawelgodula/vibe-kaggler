@@ -58,11 +58,12 @@ def plot_correlation_heatmap(
     # Convert to numpy for seaborn heatmap
     corr_np = plot_data.to_numpy()
 
-    # Disable annotations if matrix is too large
-    should_annot = annot and num_features <= max_size_for_annot
+    # ~~Disable annotations if matrix is too large~~ Always enable annotations
+    # should_annot = annot and num_features <= max_size_for_annot
+    should_annot = True # Force annotations ON
 
     plt.figure(figsize=figsize)
-    sns.heatmap(
+    heatmap = sns.heatmap(
         corr_np, 
         annot=should_annot, 
         cmap='coolwarm', 
@@ -137,11 +138,21 @@ def plot_target_correlation_bar(
     plot_data = plot_data.sort(correlation_col_name, descending=True)
 
     plt.figure(figsize=figsize)
-    sns.barplot(x=correlation_col_name, y="feature", data=plot_data.to_pandas(), palette="vlag")
+    ax = sns.barplot(x=correlation_col_name, y="feature", data=plot_data.to_pandas(), palette="vlag")
     plt.title(plot_title, fontsize=14)
     plt.xlabel(f'Correlation with {target_col}')
     plt.ylabel('Feature')
     plt.grid(axis='x', linestyle='--', alpha=0.7)
+
+    # Add annotations to the bars
+    for p in ax.patches:
+        width = p.get_width() # get bar length
+        ax.text(width + 0.01 * np.sign(width), # set text position slightly outside the bar end
+                p.get_y() + p.get_height() / 2., # set text position vertically centered on the bar
+                f'{width:.2f}', # format value to 2 decimal places
+                ha='left' if width >= 0 else 'right', # horizontal alignment
+                va='center') # vertical alignment
+
     plt.tight_layout()
 
     # Save plot to a bytes buffer

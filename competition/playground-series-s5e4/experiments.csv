@@ -1,0 +1,6 @@
+script_file_name;why;what;how;cv_score;lb_score;status
+exp_b_train_lgbm_single_fold.py;Establish a very basic baseline performance.;Train LightGBM on a single fold of the data.;Use train_single_fold.py utility with a default LGBM configuration. No special feature engineering.;13.137812765028572;;done
+exp_c_train_lgbm_cv.py;Get a more robust performance estimate using cross-validation.;Train LightGBM using all CV folds.;Use train_and_cv.py utility with default LGBM configuration.;;;planned
+exp_d_train_lgbm_cv_catencode.py;Assess the impact of basic categorical feature handling.;Train LightGBM using CV folds with basic categorical encoding.;Modify 03_c script/config to include encode_categorical_features.py (e.g., OneHotEncoding) before training.;;;planned
+exp_e_train_xgb_cv.py;Evaluate an alternative gradient boosting model.;Train XGBoost using all CV folds.;Use train_and_cv.py utility with default XGBoost configuration.;;;planned
+exp_f_ensemble_avg.py;Check if a simple ensemble improves over individual models.;Create an average ensemble of multi-fold LGBM and XGBoost predictions.;Use average_predictions.py utility on the OOF/test predictions from experiments 2 (03_c) and 4 (03_e).;;;planned

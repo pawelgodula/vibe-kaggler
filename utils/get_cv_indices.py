@@ -17,7 +17,7 @@ def get_cv_indices(
     df: pl.DataFrame,
     cv_splitter: BaseCrossValidator,
     target_col: Optional[str] = None, # Needed for Stratified splits
-    groups: Optional[pl.Series] = None
+    groups: Optional[pl.Series] = None # Needed for Group splits
 ) -> List[Tuple[np.ndarray, np.ndarray]]:
     """Generates train/validation row indices for each CV fold.
 
@@ -26,10 +26,10 @@ def get_cv_indices(
         cv_splitter (BaseCrossValidator): An initialized scikit-learn cross-validation
                                           splitter instance (e.g., KFold(), StratifiedKFold()).
         target_col (Optional[str], optional): The name of the target column in `df`.
-                                              Required for stratified splits.
+                                              Required for stratified splits (e.g., `StratifiedKFold`).
                                               Defaults to None.
         groups (Optional[pl.Series], optional): A Polars Series containing group labels for each row.
-                                                Required for group-based splits (e.g., GroupKFold).
+                                                Required for group-based splits (e.g., `GroupKFold`, `GroupShuffleSplit`).
                                                 Must have the same length as `df`.
                                                 Defaults to None.
 
@@ -54,36 +54,46 @@ def get_cv_indices(
     y = None
     groups_np = None
 
-    # Check if splitter requires target (y) - crude check based on class name
+    # Check arguments based on splitter type
     splitter_name = cv_splitter.__class__.__name__
-    if 'Stratified' in splitter_name:
+    requires_target = 'Stratified' in splitter_name
+    requires_groups = 'Group' in splitter_name
+
+    if requires_target:
         if target_col is None:
              raise ValueError(f"{splitter_name} requires 'target_col' to be provided.")
+        if target_col not in df.columns:
+             raise ValueError(f"Target column '{target_col}' not found in DataFrame.")
         try:
              y = df[target_col].to_numpy()
-        except pl.exceptions.ColumnNotFoundError:
-             raise ValueError(f"Target column '{target_col}' not found in DataFrame.")
         except Exception as e:
              raise TypeError(f"Could not convert target column '{target_col}' to NumPy: {e}")
 
-    # Check if splitter requires groups
-    if 'Group' in splitter_name:
+    if requires_groups:
         if groups is None:
             raise ValueError(f"{splitter_name} requires 'groups' to be provided.")
+        if not isinstance(groups, pl.Series):
+             raise TypeError("'groups' must be a Polars Series.")
         if len(groups) != n_rows:
             raise ValueError(f"Length of groups ({len(groups)}) must match DataFrame length ({n_rows}).")
-        # Convert groups Series to NumPy if it's not None
         try:
             groups_np = groups.to_numpy()
         except Exception as e:
              raise TypeError(f"Could not convert groups Series to NumPy: {e}")
 
-    # Generate folds
+    # Generate folds - pass only necessary arguments
+    split_args = {'X': X}
+    if requires_target:
+        split_args['y'] = y
+    if requires_groups:
+        split_args['groups'] = groups_np
+        
     try:
-        fold_indices = list(cv_splitter.split(X=X, y=y, groups=groups_np))
+        # Use **split_args to pass only the relevant arguments
+        fold_indices = list(cv_splitter.split(**split_args))
     except Exception as e:
         # Catch potential errors during split generation (e.g., wrong args for specific splitter)
-        print(f"Error calling cv_splitter.split: {e}")
+        print(f"Error calling cv_splitter.split with args {split_args.keys()}: {e}")
         # Consider checking specific exception types if needed
         raise ValueError(f"Failed to generate splits with {splitter_name}. Check target/groups arguments.") from e
 

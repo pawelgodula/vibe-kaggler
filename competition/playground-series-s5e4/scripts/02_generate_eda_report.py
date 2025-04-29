@@ -13,6 +13,7 @@ This corresponds to step 2 in the typical workflow outlined in the main README.
 import sys
 import os
 from pathlib import Path
+import re # Import regex module
 
 # Import necessary utility functions
 try:
@@ -46,6 +47,7 @@ RAW_DATA_DIR = COMPETITION_DIR / "data" / "raw"
 INPUT_CSV = RAW_DATA_DIR / "train.csv" # <-- Changed from SAMPLES_DATA_DIR
 REPORTS_DIR = COMPETITION_DIR / "reports" # Save reports here
 OUTPUT_HTML = REPORTS_DIR / "eda_report.html"
+OUTPUT_HTML_NO_PLOTS = REPORTS_DIR / "eda_report_no_plots.html" # Path for no-plots version
 TARGET_COL = "Listening_Time_minutes" # <--- Corrected target column
 
 # Optional: Specify a subset of features for detailed analysis, or None for all
@@ -83,7 +85,25 @@ def main():
             features_to_analyze=FEATURES_TO_ANALYZE
             # Add other parameters like max_categories_per_feature if needed
         )
-        print("--- EDA Report Generation Complete ---")
+        print(f"--- EDA Report Generation Complete ({OUTPUT_HTML}) ---")
+
+        # --- Create version without plots ---
+        try:
+            print(f"\nCreating report version without plots...")
+            with open(OUTPUT_HTML, 'r', encoding='utf-8') as f_in:
+                html_content = f_in.read()
+            
+            # Remove plot containers using regex
+            # re.DOTALL makes . match newline characters
+            content_no_plots = re.sub(r'<div class="plot-container">.*?</div>', '', html_content, flags=re.DOTALL | re.IGNORECASE)
+            
+            with open(OUTPUT_HTML_NO_PLOTS, 'w', encoding='utf-8') as f_out:
+                f_out.write(content_no_plots)
+            print(f"--- No-plots report generated ({OUTPUT_HTML_NO_PLOTS}) ---")
+            
+        except Exception as e_no_plots:
+            print(f"\nWarning: Failed to create report version without plots: {e_no_plots}")
+            # Continue even if this step fails
 
     except FileNotFoundError:
         print(f"\nError: Input data file not found at {INPUT_CSV}")

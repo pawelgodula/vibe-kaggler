@@ -19,6 +19,7 @@ class Experiment:
         why: Annotated[str, "Rationale ('why')"],
         what: Annotated[str, "Goals ('what')"],
         how: Annotated[str, "Implementation plan ('how')"],
+        who: Annotated[str, "Who came up with the idea?: human, AI"] = "AI",
         cv_score: Annotated[Optional[float], "Cross-validation score"] = None,
         lb_score: Annotated[Optional[float], "Leaderboard score"] = None,
         status: Annotated[str, "Experiment status: planned, in_progress, done, abandoned"] = "planned",
@@ -27,6 +28,7 @@ class Experiment:
         self.why = why
         self.what = what
         self.how = how
+        self.who = who
         self.cv_score = cv_score
         self.lb_score = lb_score
         self.status = status 
