@@ -27,90 +27,83 @@ AGG_EXPR_MAP = {
 
 def create_aggregation_features(
     df: pl.DataFrame,
-    group_by_cols: List[str],
-    agg_dict: Dict[str, List[str]],
-    new_col_prefix: str = "agg_"
+    agg_configs: List[Dict[str, Any]] # List of config dicts
 ) -> pl.DataFrame:
-    """Generates aggregation features and joins them back to the DataFrame.
+    """Generates aggregation features based on a list of configurations.
 
     Args:
         df (pl.DataFrame): The input DataFrame.
-        group_by_cols (List[str]): A list of column names to group by.
-        agg_dict (Dict[str, List[str]]): A dictionary where keys are the names
-            of the columns to aggregate, and values are lists of aggregation
-            function names (e.g., 'mean', 'std', 'count') supported by the
-            internal AGG_EXPR_MAP.
-        new_col_prefix (str, optional): Prefix for the newly created aggregation
-                                        columns. Defaults to "agg_".
+        agg_configs (List[Dict[str, Any]]): A list of dictionaries, where each
+            dictionary defines one aggregation and should contain keys like:
+            - 'groupby_cols': List[str] - Columns to group by.
+            - 'agg_col': str - Column to aggregate.
+            - 'agg_func': str - Aggregation function name (e.g., 'mean').
+            - 'new_col_name': str - Name for the resulting feature column.
 
     Returns:
         pl.DataFrame: The original DataFrame with the generated aggregation
-                      features joined back based on the group_by columns.
+                      features joined back.
 
     Raises:
-        ValueError: If group_by_cols is empty.
-        ValueError: If agg_dict is empty.
-        ValueError: If an unsupported aggregation function name is used in agg_dict.
-        pl.exceptions.ColumnNotFoundError: If any group_by or aggregation target
-                                           column is not found in the DataFrame.
+        ValueError: If agg_configs list is empty.
+        ValueError: If an unsupported aggregation function name is used.
+        ValueError: If a config dictionary is missing required keys.
+        pl.exceptions.ColumnNotFoundError: If any required column is not found.
     """
-    if not group_by_cols:
-        raise ValueError("group_by_cols cannot be empty.")
-    if not agg_dict:
-        raise ValueError("agg_dict cannot be empty.")
+    if not agg_configs:
+        raise ValueError("agg_configs list cannot be empty.")
 
-    # Validate columns exist
-    all_needed_cols = set(group_by_cols)
-    for col in agg_dict:
-         all_needed_cols.add(col)
-    missing_cols = [c for c in all_needed_cols if c not in df.columns]
-    if missing_cols:
-         raise pl.exceptions.ColumnNotFoundError(f"Columns not found in DataFrame: {missing_cols}")
+    df_out = df.clone()
+    all_agg_dfs = [] # Store intermediate aggregated DFs
+    required_keys = {'groupby_cols', 'agg_col', 'agg_func', 'new_col_name'}
 
-    agg_expressions = []
-    for agg_col, agg_funcs in agg_dict.items():
-        if not isinstance(agg_funcs, list):
-             raise TypeError(f"Value for '{agg_col}' in agg_dict must be a list of strings, got {type(agg_funcs)}")
-        for agg_func_name in agg_funcs:
-            agg_func_name_lower = agg_func_name.lower()
-            agg_expr_func = AGG_EXPR_MAP.get(agg_func_name_lower)
-            if agg_expr_func is None:
-                raise ValueError(
-                    f"Unsupported aggregation function: '{agg_func_name}'. Supported: "
-                    f"{list(AGG_EXPR_MAP.keys())}"
-                )
-                
-            # Handle special case for 'size' which doesn't take a column argument
-            if agg_func_name_lower == 'size':
-                 new_col_name = f"{new_col_prefix}{'_'.join(group_by_cols)}_size"
-                 expr = agg_expr_func().alias(new_col_name)
-            else:
-                 new_col_name = f"{new_col_prefix}{agg_col}_by_{'_'.join(group_by_cols)}_{agg_func_name_lower}"
-                 expr = agg_expr_func(agg_col).alias(new_col_name)
-                 
-            agg_expressions.append(expr)
+    # Process each aggregation configuration separately
+    for i, config in enumerate(agg_configs):
+        if not isinstance(config, dict):
+            raise TypeError(f"Element {i} in agg_configs is not a dictionary.")
+        if not required_keys.issubset(config.keys()):
+            missing = required_keys - set(config.keys())
+            raise ValueError(f"Config dictionary {i} is missing required keys: {missing}")
 
-    if not agg_expressions:
-        # This should not happen if agg_dict is validated, but as a safeguard
-        print("Warning: No valid aggregation expressions were generated.")
-        return df.clone() # Return a copy if no aggregations performed
+        group_by_cols = config['groupby_cols']
+        agg_col = config['agg_col']
+        agg_func_name = config['agg_func'].lower()
+        new_col_name = config['new_col_name']
 
-    # Perform aggregation
-    try:
-        df_agg = df.group_by(group_by_cols).agg(agg_expressions)
-    except Exception as e:
-        print(f"Error during Polars group_by or aggregation: {e}")
-        raise pl.exceptions.ComputeError("Aggregation computation failed.") from e
+        # Validate columns for this specific config
+        current_needed = set(group_by_cols) | {agg_col}
+        missing_cols = [c for c in current_needed if c not in df.columns]
+        if missing_cols:
+            raise pl.exceptions.ColumnNotFoundError(f"Columns for config {i} not found: {missing_cols}")
 
-    # Join back to the original DataFrame
-    try:
-        # Use outer join to handle potential cases where original df might have
-        # group combinations not present during agg (unlikely but safer?)
-        # Or left join if we assume all original rows should be kept.
-        # Left join seems more standard for feature engineering.
-        df_out = df.join(df_agg, on=group_by_cols, how="left")
-    except Exception as e:
-        print(f"Error joining aggregation results back to DataFrame: {e}")
-        raise pl.exceptions.ComputeError("Joining aggregation features failed.") from e
+        agg_expr_func = AGG_EXPR_MAP.get(agg_func_name)
+        if agg_expr_func is None:
+            raise ValueError(
+                f"Unsupported aggregation function '{config['agg_func']}' in config {i}. Supported: "
+                f"{list(AGG_EXPR_MAP.keys())}"
+            )
+
+        # Handle special case for 'size'
+        if agg_func_name == 'size':
+            agg_expr = agg_expr_func().alias(new_col_name)
+        else:
+            agg_expr = agg_expr_func(agg_col).alias(new_col_name)
+
+        # Perform this single aggregation
+        try:
+            df_agg_single = df.group_by(group_by_cols).agg(agg_expr)
+            all_agg_dfs.append((group_by_cols, df_agg_single))
+        except Exception as e:
+            print(f"Error during aggregation for config {i}: {config}")
+            raise pl.exceptions.ComputeError("Aggregation computation failed.") from e
+
+    # Join all aggregated features back one by one
+    for group_keys, df_agg in all_agg_dfs:
+        try:
+            df_out = df_out.join(df_agg, on=group_keys, how="left")
+        except Exception as e:
+            agg_col_name = df_agg.columns[-1] # Get the name of the aggregated column
+            print(f"Error joining aggregation result '{agg_col_name}' (groups: {group_keys}) back: {e}")
+            raise pl.exceptions.ComputeError("Joining aggregation features failed.") from e
         
     return df_out 

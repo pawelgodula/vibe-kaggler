@@ -44,21 +44,23 @@ def setup_logging(
     # --- Always remove existing handlers --- 
     for handler in root_logger.handlers[:]:
         try:
-            handler.close()
+            handler.close() # Close existing handlers
         except Exception:
             pass # Ignore errors during handler close
         root_logger.removeHandler(handler)
     # --- End removal ---
 
-    # --- Always add the specified handler --- 
+    # --- Add Handlers (File and/or Stream) --- 
     if log_file:
-        handler = logging.FileHandler(log_file, mode='a')
-    else:
-        handler = logging.StreamHandler(sys.stderr)
-    
-    handler.setFormatter(formatter)
-    root_logger.addHandler(handler)
-    # --- End adding handler ---
+        file_handler = logging.FileHandler(log_file, mode='a')
+        file_handler.setFormatter(formatter)
+        root_logger.addHandler(file_handler)
+
+    # Always add a StreamHandler to stderr
+    stream_handler = logging.StreamHandler(sys.stderr)
+    stream_handler.setFormatter(formatter)
+    root_logger.addHandler(stream_handler)
+    # --- End adding handlers --- 
     
     # Set the level on the root logger
     root_logger.setLevel(level)

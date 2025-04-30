@@ -30,6 +30,7 @@ def encode_categorical_features(
     handle_unknown: str = 'ignore', # Common param for OHE
     drop_original: bool = True,
     new_col_prefix: str = '', # Optional prefix for new columns (esp. for OHE)
+    add_one: bool = False, # Add 1 to result for OrdinalEncoder (0-based -> 1-based)
     **encoder_kwargs: Any
 ) -> Tuple[pl.DataFrame, Optional[pl.DataFrame], Any]:
     """Fits an encoder on training data and transforms train and optionally test data (Polars IO).
@@ -48,6 +49,8 @@ def encode_categorical_features(
                                         columns after encoding. Defaults to True.
         new_col_prefix (str, optional): Prefix to add to newly generated column names,
                                         particularly useful for OneHotEncoder. Defaults to ''.
+        add_one (bool, optional): If True and encoder_type is 'ordinal', adds 1 to the
+                                  encoded integer result. Defaults to False.
         **encoder_kwargs (Any): Additional kwargs for the encoder constructor.
 
     Returns:
@@ -161,9 +164,15 @@ def encode_categorical_features(
                 # OrdinalEncoder might return floats if unknown_value=np.nan, otherwise ints
                 # Cast explicitly for consistency? Let's use Float64 if np.nan is possible.
                 dtype = pl.Float64 if encoder_init_kwargs.get('handle_unknown') == 'use_encoded_value' and encoder_init_kwargs.get('unknown_value') is np.nan else pl.Int64
-                updates_train.append(pl.Series(new_name, transformed_train_np[:, i]).cast(dtype))
+                encoded_series_train = pl.Series(new_name, transformed_train_np[:, i])
+                if add_one:
+                    encoded_series_train = encoded_series_train + 1
+                updates_train.append(encoded_series_train.cast(dtype))
                 if test_df_out is not None and transformed_test_np is not None:
-                     updates_test.append(pl.Series(new_name, transformed_test_np[:, i]).cast(dtype))
+                    encoded_series_test = pl.Series(new_name, transformed_test_np[:, i])
+                    if add_one:
+                        encoded_series_test = encoded_series_test + 1
+                    updates_test.append(encoded_series_test.cast(dtype))
                      
             train_df_out = train_df_out.with_columns(updates_train)
             if test_df_out is not None:
