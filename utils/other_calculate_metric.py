@@ -99,4 +99,49 @@ def calculate_metric(
         raise
     except Exception as e:
         print(f"Error calculating metric '{metric_name}': {e}")
-        raise 
+        raise
+
+
+if __name__ == '__main__':
+    # Example Usage
+    print("Testing calculate_metric function...")
+
+    # Regression examples
+    y_true_reg = np.array([3, -0.5, 2, 7])
+    y_pred_reg = np.array([2.5, 0.0, 2, 8])
+    print(f"\n--- Regression Metrics ---")
+    print(f"MAE: {calculate_metric(y_true_reg, y_pred_reg, 'mae')}") # Expected: 0.5
+    print(f"MSE: {calculate_metric(y_true_reg, y_pred_reg, 'mse')}") # Expected: 0.375
+    print(f"RMSE: {calculate_metric(y_true_reg, y_pred_reg, 'rmse')}") # Expected: sqrt(0.375) = 0.61237
+    print(f"R2: {calculate_metric(y_true_reg, y_pred_reg, 'r2')}") # Expected: 0.9486
+
+    y_true_reg_pos = np.array([1, 2, 3, 4, 5])
+    y_pred_reg_pos = np.array([1.1, 2.2, 2.8, 4.3, 5.1])
+    print(f"MSLE: {calculate_metric(y_true_reg_pos, y_pred_reg_pos, 'msle')}")
+    print(f"RMSLE: {calculate_metric(y_true_reg_pos, y_pred_reg_pos, 'rmsle')}")
+
+    # Classification examples
+    y_true_clf = np.array([0, 1, 0, 1, 0, 1, 1, 0])
+    y_pred_clf_labels = np.array([0, 1, 1, 1, 0, 0, 1, 0])
+    y_pred_clf_probs = np.array([0.1, 0.9, 0.6, 0.8, 0.2, 0.3, 0.95, 0.15])
+    print(f"\n--- Classification Metrics ---")
+    print(f"Accuracy: {calculate_metric(y_true_clf, y_pred_clf_labels, 'accuracy')}") # Expected: 0.75
+    print(f"Precision (binary): {calculate_metric(y_true_clf, y_pred_clf_labels, 'precision')}") # TP=3, FP=1 -> 3/4 = 0.75
+    print(f"Recall (binary): {calculate_metric(y_true_clf, y_pred_clf_labels, 'recall')}")    # TP=3, FN=1 -> 3/4 = 0.75
+    print(f"F1 (binary): {calculate_metric(y_true_clf, y_pred_clf_labels, 'f1')}")          # Expected: 0.75
+    print(f"Balanced Accuracy: {calculate_metric(y_true_clf, y_pred_clf_labels, 'balanced_accuracy')}") # (3/4 + 3/4)/2 = 0.75
+    print(f"ROC AUC: {calculate_metric(y_true_clf, y_pred_clf_probs, 'roc_auc')}")
+    print(f"LogLoss: {calculate_metric(y_true_clf, y_pred_clf_probs, 'logloss')}")
+
+    # Example with Polars Series
+    y_true_pl = pl.Series("true", y_true_reg)
+    y_pred_pl = pl.Series("pred", y_pred_reg)
+    print(f"\n--- Polars Series Input ---")
+    print(f"MAE (Polars): {calculate_metric(y_true_pl, y_pred_pl, 'mae')}")
+
+    # Error case: unsupported metric
+    print("\n--- Error Case: Unsupported Metric ---")
+    try:
+        calculate_metric(y_true_reg, y_pred_reg, 'unsupported_metric_blah')
+    except ValueError as e:
+        print(f"Caught expected error: {e}") 

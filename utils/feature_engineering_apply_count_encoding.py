@@ -142,4 +142,88 @@ def apply_count_encoding(
                 pl.col('encoded_value').fill_null(fill_value).cast(count_col_dtype).alias(new_col_name)
             ).drop('encoded_value')
 
-    return train_df_out, test_df_out 
+    return train_df_out, test_df_out
+
+
+if __name__ == '__main__':
+    # Example Usage
+    train_example = pl.DataFrame({
+        'id': [1, 2, 3, 4, 5, 6],
+        'category_A': ['apple', 'banana', 'apple', 'orange', 'banana', 'apple'],
+        'category_B': ['red', 'yellow', 'green', 'orange', 'yellow', 'red'],
+        'numerical': [10, 20, 15, 25, 30, 22]
+    })
+    test_example = pl.DataFrame({
+        'id': [7, 8, 9, 10],
+        'category_A': ['apple', 'grape', 'banana', 'orange'], # 'grape' is unseen in train
+        'category_B': ['red', 'purple', 'yellow', 'green'], # 'purple' unseen
+        'numerical': [12, 28, 18, 35]
+    })
+
+    features_to_encode = ['category_A', 'category_B']
+
+    print("Original Train DF:")
+    print(train_example)
+    print("\nOriginal Test DF:")
+    print(test_example)
+
+    # --- Test 1: Count on train, no normalization, handle_unknown='zero' ---
+    print("\n--- Test 1: Count on train, no normalization, unknown='zero' ---")
+    train_t1, test_t1 = apply_count_encoding(
+        train_example, features_to_encode, test_example, count_on='train'
+    )
+    print("Train DF (Test 1):")
+    print(train_t1)
+    print("Test DF (Test 1):")
+    print(test_t1)
+
+    # --- Test 2: Count on combined, normalization, handle_unknown='nan' ---
+    print("\n--- Test 2: Count on combined, normalization, unknown='nan' ---")
+    train_t2, test_t2 = apply_count_encoding(
+        train_example, features_to_encode, test_example, 
+        count_on='combined', normalize=True, handle_unknown='nan', new_col_suffix='_freq'
+    )
+    print("Train DF (Test 2):")
+    print(train_t2)
+    print("Test DF (Test 2):")
+    print(test_t2)
+
+    # --- Test 3: Count on test only, no normalization ---
+    print("\n--- Test 3: Count on test only, no normalization ---")
+    train_t3, test_t3 = apply_count_encoding(
+        train_example, features_to_encode, test_example, 
+        count_on='test', normalize=False, new_col_suffix='_test_count'
+    )
+    print("Train DF (Test 3):") # Train counts will be based on test data counts
+    print(train_t3)
+    print("Test DF (Test 3):")
+    print(test_t3)
+    
+    # --- Test 4: Feature not in test (should handle gracefully if test_df is provided for mapping) ---
+    # This specific case is more about joining a map built on train, to a test set that might have fewer categories.
+    # The current implementation applies count_on source. If count_on='train', test categories not in train get fill_value.
+    print("\n--- Test 4: count_on='train', handle 'grape' in test_example.category_A (should be 0 or NaN) ---")
+    # (Covered by Test 1 for 'zero' and would be similar for 'nan')
+    # Let's re-run with count_on='train' but handle_unknown='nan' to see grape -> NaN
+    _, test_t4_nan = apply_count_encoding(
+        train_example, ['category_A'], test_example, 
+        count_on='train', normalize=False, handle_unknown='nan'
+    )
+    print("Test DF (Test 4 - category_A_count with unknown='nan'):")
+    print(test_t4_nan.select(['id', 'category_A', 'category_A_count']))
+
+    # --- Test 5: Empty source feature (all nulls or no rows) ---
+    print("\n--- Test 5: Empty source feature ---")
+    train_empty_feat = train_example.with_columns(pl.lit(None, dtype=pl.Utf8).alias('empty_cat'))
+    test_empty_feat = test_example.with_columns(pl.lit(None, dtype=pl.Utf8).alias('empty_cat'))
+    try:
+        train_t5, test_t5 = apply_count_encoding(
+            train_empty_feat, ['empty_cat'], test_empty_feat,
+            count_on='train', normalize=True
+        )
+        print("Train DF (Test 5 - empty_cat_count normalized):")
+        print(train_t5.select(['id', 'empty_cat', 'empty_cat_count']))
+        print("Test DF (Test 5 - empty_cat_count normalized):")
+        print(test_t5.select(['id', 'empty_cat', 'empty_cat_count']))
+    except Exception as e:
+        print(f"Error in Test 5: {e}") 

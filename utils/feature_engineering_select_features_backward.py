@@ -16,7 +16,7 @@ from typing import List, Tuple, Dict, Any, Optional
 import math
 
 # Needs the helper function to evaluate CV score
-from ._evaluate_features_cv import _evaluate_features_cv
+from ._evaluate_features_cv import _evaluate_features_cv # TODO: Check if this needs renaming too
 
 def select_features_backward(
     train_df: pl.DataFrame,
@@ -154,4 +154,80 @@ def select_features_backward(
 
     print(f"\nBackward selection finished. Selected {len(selected_features)} features:")
     print(selected_features)
-    return selected_features 
+    return selected_features
+
+
+if __name__ == '__main__':
+    # --- Example Usage of Backward Feature Selection --- 
+    print("\n--- Example: Backward Feature Selection ---")
+    
+    # 0. Generate dummy data (Polars DataFrame)
+    N_samples = 200
+    rng = np.random.RandomState(42)
+    data = pl.DataFrame({
+        'feature1': rng.rand(N_samples),
+        'feature2': rng.rand(N_samples) * 0.5,
+        'feature3_noisy': rng.rand(N_samples) * 0.1, # Less important
+        'feature4': rng.rand(N_samples) * 2,
+        'feature5_irrelevant': rng.rand(N_samples), # Irrelevant
+        'target': 2 * rng.rand(N_samples) + 3 * rng.rand(N_samples) * 0.5 + 0.5 * rng.rand(N_samples) * 2 + rng.randn(N_samples) * 0.1
+    })
+    # Correcting target based on actual features used in its generation
+    data = data.with_columns(
+        (2 * pl.col('feature1') + 3 * pl.col('feature2') + 0.5 * pl.col('feature4') + 
+         rng.randn(N_samples) * 0.1).alias('target')
+    )
+
+    target_name = 'target'
+    all_features = ['feature1', 'feature2', 'feature3_noisy', 'feature4', 'feature5_irrelevant']
+    
+    # 1. Create CV indices (e.g., 5-fold)
+    from sklearn.model_selection import KFold
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    cv_idx_list = list(kf.split(data))
+
+    # 2. Define model and metric parameters
+    lgbm_params = {
+        'objective': 'regression_l1',
+        'metric': 'mae',
+        'n_estimators': 50, # Keep it small for example
+        'learning_rate': 0.05,
+        'feature_fraction': 0.8,
+        'bagging_fraction': 0.8,
+        'bagging_freq': 1,
+        'lambda_l1': 0.1,
+        'lambda_l2': 0.1,
+        'num_leaves': 10,
+        'verbose': -1,
+        'n_jobs': -1,
+        'seed': 42,
+        'boosting_type': 'gbdt',
+    }
+    lgbm_fit_params = {
+        'eval_metric': 'mae',
+        'callbacks': [] # No early stopping for simplicity here
+    }
+    metric_name_config = 'mae'
+    metric_params_config = {}
+    higher_is_better_config = False # Lower MAE is better
+
+    try:
+        final_selected_features = select_features_backward(
+            train_df=data,
+            target_col=target_name,
+            initial_features=all_features,
+            cv_indices=cv_idx_list,
+            model_type='lgbm',
+            model_params=lgbm_params,
+            fit_params=lgbm_fit_params,
+            metric_name=metric_name_config,
+            metric_params=metric_params_config,
+            higher_is_better=higher_is_better_config,
+            min_features=2, # Stop when we have at least 2 features
+            score_threshold=None # No hard score threshold for this example
+        )
+        print(f"\nFinal features selected by backward selection: {final_selected_features}")
+    except ImportError as e:
+        print(f"ImportError during example: {e}. Make sure scikit-learn and lightgbm are installed.")
+    except Exception as e:
+        print(f"An error occurred during the backward selection example: {e}") 

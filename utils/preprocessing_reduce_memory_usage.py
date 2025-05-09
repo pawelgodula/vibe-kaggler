@@ -108,4 +108,4 @@ def reduce_memory_usage(
         reduction = 100 * (start_mem - end_mem) / start_mem if start_mem > 0 else 0
         print(f'Final memory usage: {end_mem:.2f} MB ({reduction:.1f}% reduction)')
 
-    return df_reduced
+    return df_reduced 

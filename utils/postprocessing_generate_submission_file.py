@@ -11,7 +11,7 @@ which handles Polars CSV writing without an index.
 import polars as pl
 import numpy as np
 from typing import Union
-from .save_csv import save_csv # Use Polars version of save_csv
+from .io_save_csv import save_csv # Changed from .save_csv to .io_save_csv
 
 def generate_submission_file(
     ids: Union[pl.Series, np.ndarray],

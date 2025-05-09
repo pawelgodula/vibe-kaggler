@@ -155,4 +155,84 @@ def apply_ratio_to_category_mean_encoding(
                  .alias(new_col_name)
             ).drop([mean_col_name, f"__{category_col}_filled"]) # Drop helpers
 
-    return train_df_out, test_df_out 
+    return train_df_out, test_df_out
+
+
+if __name__ == '__main__':
+    # Example Usage
+    train_data = pl.DataFrame({
+        'id': [1, 2, 3, 4, 5, 6, 7, 8],
+        'city': ['NY', 'NY', 'SF', 'SF', 'LA', 'NY', None, 'SF'],
+        'income': [50000, 60000, 75000, 80000, 65000, 55000, 70000, None],
+        'age': [25, 30, 28, 35, 32, 29, 40, 22]
+    })
+    test_data = pl.DataFrame({
+        'id': [9, 10, 11, 12, 13],
+        'city': ['NY', 'SF', 'LA', 'Chicago', None], # Chicago is unseen in train
+        'income': [58000, None, 70000, 60000, 0], # Test zero income
+        'age': [27, 33, 30, 38, 24]
+    })
+
+    print("Original Train DF:")
+    print(train_data)
+    print("\nOriginal Test DF:")
+    print(test_data)
+
+    num_features = ['income', 'age']
+    cat_feature = 'city'
+
+    # --- Test 1: Calculate mean on train, fill_value=1.0 ---
+    print("\n--- Test 1: Mean on train, fill_value=1.0 ---")
+    train_t1, test_t1 = apply_ratio_to_category_mean_encoding(
+        train_data, num_features, cat_feature, test_data, 
+        calculate_mean_on='train', fill_value=1.0
+    )
+    print("Train DF (Test 1):")
+    print(train_t1)
+    print("Test DF (Test 1):")
+    print(test_t1)
+
+    # --- Test 2: Calculate mean on combined, fill_value=0.0, custom suffix ---
+    print("\n--- Test 2: Mean on combined, fill_value=0.0, custom suffix ---")
+    train_t2, test_t2 = apply_ratio_to_category_mean_encoding(
+        train_data, num_features, cat_feature, test_data, 
+        calculate_mean_on='combined', fill_value=0.0, new_col_suffix_format="_ratio_MEAN_{cat}"
+    )
+    print("Train DF (Test 2):")
+    print(train_t2)
+    print("Test DF (Test 2):")
+    print(test_t2)
+    
+    # --- Test 3: Handling zero mean in a category ---
+    print("\n--- Test 3: Handling zero mean in a category ---")
+    train_data_zero_mean = train_data.with_columns(
+        pl.when(pl.col('city') == 'LA').then(0).otherwise(pl.col('income')).alias('income')
+    )
+    print("Train DF for Test 3 (LA income set to 0):")
+    print(train_data_zero_mean)
+    train_t3, test_t3 = apply_ratio_to_category_mean_encoding(
+        train_data_zero_mean, ['income'], cat_feature, test_data, 
+        calculate_mean_on='train', fill_value=999.0 # Use a distinct fill value
+    )
+    print("Train DF (Test 3 - LA income ratio should be 999):")
+    print(train_t3.filter(pl.col('city') == 'LA'))
+    print("Test DF (Test 3 - LA income ratio should be 999):")
+    print(test_t3.filter(pl.col('city') == 'LA'))
+    
+    # --- Test 4: No test_df provided but mean_on='test' (should raise ValueError) ---
+    print("\n--- Test 4: Error case - mean_on='test' but no test_df ---")
+    try:
+        apply_ratio_to_category_mean_encoding(train_data, num_features, cat_feature, calculate_mean_on='test')
+    except ValueError as ve:
+        print(f"Caught expected ValueError: {ve}")
+    except Exception as e:
+        print(f"Caught unexpected error: {e}")
+
+    # --- Test 5: Numerical feature missing (should raise ColumnNotFoundError) ---
+    print("\n--- Test 5: Error case - Numerical feature missing ---")
+    try:
+        apply_ratio_to_category_mean_encoding(train_data, ['non_existent_feature'], cat_feature, test_data)
+    except pl.exceptions.ColumnNotFoundError as cnf:
+        print(f"Caught expected ColumnNotFoundError: {cnf}")
+    except Exception as e:
+        print(f"Caught unexpected error: {e}") 

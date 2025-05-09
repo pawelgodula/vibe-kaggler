@@ -205,3 +205,85 @@ def bin_and_encode_numerical_features(
     }
 
     return train_df_out, test_df_out, fitted_params
+
+
+if __name__ == '__main__':
+    # Example Usage
+    # Create dummy data
+    train_data = pl.DataFrame({
+        'id': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+        'numerical_feat1': [10, 12, 15, 11, 19, 25, 22, 30, 28, 35],
+        'numerical_feat2': [1.1, 1.5, 2.2, 1.3, 2.5, 3.1, 2.8, 3.5, 3.2, 4.0],
+        'other_col': ['a', 'b', 'a', 'c', 'b', 'a', 'c', 'a', 'b', 'c']
+    })
+    test_data = pl.DataFrame({
+        'id': [11, 12, 13, 14, 15],
+        'numerical_feat1': [9, 16, 23, 29, 40],
+        'numerical_feat2': [1.0, 2.0, 2.7, 3.3, 4.5],
+        'other_col': ['b', 'a', 'c', 'a', 'b']
+    })
+
+    print("Original Train DF:")
+    print(train_data)
+    print("\nOriginal Test DF:")
+    print(test_data)
+
+    features_to_bin = ['numerical_feat1', 'numerical_feat2']
+    num_bins = 4
+
+    try:
+        print(f"\n--- Testing bin_and_encode_numerical_features with {num_bins} quantile bins and one-hot encoding ---")
+        train_transformed, test_transformed, params = bin_and_encode_numerical_features(
+            train_df=train_data,
+            features=features_to_bin,
+            n_bins=num_bins,
+            test_df=test_data,
+            strategy='quantile',
+            encoder_type='onehot'
+        )
+        
+        print("\nTransformed Train DF (Quantile):")
+        print(train_transformed)
+        print("\nTransformed Test DF (Quantile):")
+        print(test_transformed)
+        print("\nFitted Parameters (Quantile):")
+        print(f"  Encoder: {params['encoder']}")
+        print(f"  Bin Edges: {params['bin_edges']}")
+
+        # Test uniform binning
+        print(f"\n--- Testing bin_and_encode_numerical_features with {num_bins} uniform bins and one-hot encoding ---")
+        train_transformed_uni, test_transformed_uni, params_uni = bin_and_encode_numerical_features(
+            train_df=train_data,
+            features=features_to_bin,
+            n_bins=num_bins,
+            test_df=test_data,
+            strategy='uniform',
+            encoder_type='onehot'
+        )
+        print("\nTransformed Train DF (Uniform):")
+        print(train_transformed_uni)
+        print("\nTransformed Test DF (Uniform):")
+        print(test_transformed_uni)
+        print("\nFitted Parameters (Uniform):")
+        print(f"  Encoder: {params_uni['encoder']}")
+        print(f"  Bin Edges: {params_uni['bin_edges']}")
+        
+        # Test handling of constant feature
+        train_data_const = train_data.with_columns(pl.lit(5).alias('numerical_feat_const'))
+        features_to_bin_const = ['numerical_feat1', 'numerical_feat_const']
+        print(f"\n--- Testing with a constant feature ---")
+        train_transformed_const, _, params_const = bin_and_encode_numerical_features(
+            train_df=train_data_const,
+            features=features_to_bin_const,
+            n_bins=2 # Should still work with constant
+        )
+        print("\nTransformed Train DF (with Constant Feature):")
+        print(train_transformed_const)
+        print(f"  Bin Edges for Constant: {params_const['bin_edges']['numerical_feat_const']}")
+
+    except ValueError as ve:
+        print(f"\nValueError: {ve}")
+    except TypeError as te:
+        print(f"\nTypeError: {te}")
+    except Exception as e:
+        print(f"\nAn unexpected error occurred: {e}") 

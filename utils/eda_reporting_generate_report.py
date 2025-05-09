@@ -248,29 +248,76 @@ def generate_eda_report(
                             image_base64=summary_plot_b64
                         ))
                     else:
-                         html_content.append(f"<p>Could not generate summary plot for {feature}.</p>")
-                         
-                    # Add summary table    
+                        html_content.append(f"<p>Could not generate plot for feature '{feature}'.</p>")
+                    
+                    # Display summary table
                     html_content.append(HTML_TABLE.format(
-                        table_title=f"Target Summary by {feature}",
+                        table_title=f"Summary Statistics for {target_col} by {feature}",
                         table_html=_df_to_html(summary_df)
                     ))
                 else:
-                    html_content.append(f"<p>Could not generate summary statistics for {feature}.</p>")
-
+                    html_content.append(f"<p>Analysis for feature '{feature}' was skipped or returned no data (e.g., high cardinality numerical, all nulls).</p>")
+                    
             except Exception as e:
-                 html_content.append(f"<p>Error during analysis of feature '{feature}': {e}</p>")
-            html_content.append("</div></details>") # Close feature details
-            
-    html_content.append(HTML_SECTION_END)
+                html_content.append(f"<p>Error during analysis of feature '{feature}': {e}</p>")
+            finally:
+                 html_content.append("</div></details>") # Close details for the feature
+                 
+    html_content.append(HTML_SECTION_END) # Close Individual Feature Analysis section
 
     # --- HTML Footer ---
     html_content.append(HTML_TEMPLATE_END)
 
-    # --- Write Report --- 
+    # Write to file
     try:
         with open(output_html_path, 'w', encoding='utf-8') as f:
             f.write("\n".join(html_content))
         print(f"EDA report successfully generated: {output_html_path}")
-    except Exception as e:
-        print(f"Error writing HTML report to {output_html_path}: {e}") 
+    except IOError as e:
+        print(f"Error writing HTML report to {output_html_path}: {e}")
+
+
+if __name__ == '__main__':
+    # Example Usage (assumes other EDA utils are in the same directory or PYTHONPATH)
+    print("Running EDA Report Generation Example...")
+    # Create dummy data
+    n_rows = 200
+    data = {
+        'id': list(range(n_rows)),
+        'numerical_feat1': np.random.rand(n_rows) * 100,
+        'numerical_feat2': np.random.randn(n_rows) * 50 + 20,
+        'categorical_feat1': np.random.choice(['A', 'B', 'C', 'D', 'E'], size=n_rows),
+        'categorical_feat2': np.random.choice(['X', 'Y', 'Z', None, 'X', 'Y'], size=n_rows),
+        'target_numeric': np.random.rand(n_rows) * 10 + np.random.randn(n_rows),
+        'target_binary': np.random.randint(0, 2, size=n_rows)
+    }
+    sample_df = pl.DataFrame(data)
+    
+    # Add some nulls to features
+    sample_df = sample_df.with_columns([
+        pl.when(pl.col("numerical_feat1") < 10).then(None).otherwise(pl.col("numerical_feat1")).alias("numerical_feat1"),
+        pl.when(pl.col("categorical_feat1") == 'A').then(None).otherwise(pl.col("categorical_feat1")).alias("categorical_feat1")
+    ])
+
+    output_path = "./eda_report_example.html"
+    
+    # Generate report for a numeric target
+    generate_eda_report(
+        df=sample_df, 
+        target_col='target_numeric', 
+        output_html_path=output_path,
+        report_title="Sample EDA Report (Numeric Target)",
+        features_to_analyze=['numerical_feat1', 'categorical_feat1', 'categorical_feat2', 'id'] # Include 'id' to test high cardinality skip
+    )
+    print(f"Example report generated at {output_path}")
+
+    # Generate report for a binary target (some analyses might be less informative or skipped)
+    output_path_binary = "./eda_report_example_binary_target.html"
+    generate_eda_report(
+        df=sample_df, 
+        target_col='target_binary', 
+        output_html_path=output_path_binary,
+        report_title="Sample EDA Report (Binary Target)"
+        # features_to_analyze=None # Analyze all
+    )
+    print(f"Example report for binary target generated at {output_path_binary}") 

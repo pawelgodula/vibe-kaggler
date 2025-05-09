@@ -93,4 +93,63 @@ def create_polynomial_features(
     # Append new features to the original DataFrame
     df_out = pl.concat([df_out, df_poly_new], how="horizontal")
 
-    return df_out 
+    return df_out
+
+
+if __name__ == '__main__':
+    # Example Usage
+    data = {
+        'A': [1, 2, 3],
+        'B': [4, 5, 6],
+        'C': ['x', 'y', 'z'] # Non-numeric column
+    }
+    example_df = pl.DataFrame(data)
+    print("Original DataFrame:")
+    print(example_df)
+
+    # --- Test 1: Degree 2 polynomial features for A and B --- 
+    print("\n--- Test 1: Degree 2 Polynomials (A, B) ---")
+    try:
+        df_poly1 = create_polynomial_features(example_df, features=['A', 'B'], degree=2)
+        print(df_poly1)
+    except Exception as e:
+        print(f"Error in Test 1: {e}")
+
+    # --- Test 2: Interaction only for A and B --- 
+    print("\n--- Test 2: Interaction Only (A, B), include_bias=True ---")
+    try:
+        df_poly2 = create_polynomial_features(
+            example_df, features=['A', 'B'], 
+            degree=2, interaction_only=True, include_bias=True
+        )
+        print(df_poly2)
+    except Exception as e:
+        print(f"Error in Test 2: {e}")
+        
+    # --- Test 3: Degree 3 for a single feature A, custom prefix ---
+    print("\n--- Test 3: Degree 3 for feature A, custom prefix ---")
+    try:
+        df_poly3 = create_polynomial_features(
+            example_df, features=['A'], degree=3, new_col_prefix="featA_pow_"
+        )
+        print(df_poly3)
+    except Exception as e:
+        print(f"Error in Test 3: {e}")
+
+    # --- Test 4: Error case - non-numeric feature ---
+    print("\n--- Test 4: Error - Non-numeric feature C ---")
+    try:
+        create_polynomial_features(example_df, features=['A', 'C'])
+    except pl.exceptions.ComputeError as ce:
+        print(f"Caught expected ComputeError: {ce}")
+    except Exception as e:
+        print(f"Caught unexpected error: {e}")
+        
+    # --- Test 5: Error case - feature not found ---
+    print("\n--- Test 5: Error - Feature D not found ---")
+    try:
+        create_polynomial_features(example_df, features=['A', 'D'])
+    except pl.exceptions.ColumnNotFoundError as cnf:
+        print(f"Caught expected ColumnNotFoundError: {cnf}")
+    except Exception as e:
+        print(f"Caught unexpected error: {e}") 

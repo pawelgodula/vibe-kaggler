@@ -21,7 +21,10 @@ def _train_sklearn(
     X_test: Optional[np.ndarray],
     model_class: type, # Pass the actual class, e.g., RandomForestClassifier
     model_params: Dict[str, Any],
-    fit_params: Dict[str, Any]
+    fit_params: Dict[str, Any],
+    # These are added to match signature of other _train_* funcs, but not always used by sklearn
+    feature_cols: Optional[list[str]] = None, 
+    cat_features: Optional[list[str]] = None 
 ) -> Tuple[BaseEstimator, Optional[np.ndarray], Optional[np.ndarray]]:
     """Trains a scikit-learn compatible model on one fold.
 
@@ -34,6 +37,8 @@ def _train_sklearn(
         model_class (type): The scikit-learn model class to instantiate (e.g., RandomForestClassifier).
         model_params (Dict[str, Any]): Parameters to initialize the model class.
         fit_params (Dict[str, Any]): Parameters to pass to the model's `fit` method (e.g., sample_weight).
+        feature_cols (Optional[list[str]]): Names of feature columns (primarily for metadata, not direct use by sklearn fit).
+        cat_features (Optional[list[str]]): Names of categorical features (primarily for metadata, not direct use by sklearn fit).
 
     Returns:
         Tuple[BaseEstimator, Optional[np.ndarray], Optional[np.ndarray]]:
@@ -99,4 +104,66 @@ def _train_sklearn(
             print(f"Warning: Failed to generate test predictions with {model_class.__name__}: {e}")
             # Optionally raise
 
-    return model, y_pred_valid, y_pred_test 
+    return model, y_pred_valid, y_pred_test
+
+
+if __name__ == '__main__':
+    # Example Usage
+    from sklearn.ensemble import RandomForestRegressor
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.datasets import make_regression, make_classification
+    from sklearn.model_selection import train_test_split
+
+    print("Testing _train_sklearn function...")
+
+    # Regression Example
+    print("\n--- Regression Example (RandomForestRegressor) ---")
+    X_reg, y_reg = make_regression(n_samples=100, n_features=10, random_state=42)
+    X_train_reg, X_val_reg, y_train_reg, y_val_reg = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
+    X_test_reg = rng.rand(20, 10) # Dummy test data
+    
+    reg_model_params = {'n_estimators': 10, 'random_state': 42}
+    reg_fit_params = {}
+    
+    try:
+        reg_model, reg_val_preds, reg_test_preds = _train_sklearn(
+            X_train_reg, y_train_reg, X_val_reg, y_val_reg, X_test_reg,
+            RandomForestRegressor, reg_model_params, reg_fit_params
+        )
+        print(f"Fitted Regressor: {type(reg_model)}")
+        if reg_val_preds is not None:
+            print(f"Validation preds shape: {reg_val_preds.shape}, first 5: {reg_val_preds[:5]}")
+        if reg_test_preds is not None:
+            print(f"Test preds shape: {reg_test_preds.shape}, first 5: {reg_test_preds[:5]}")
+    except Exception as e:
+        print(f"Error in regression example: {e}")
+
+    # Classification Example (Logistic Regression)
+    print("\n--- Classification Example (LogisticRegression) ---")
+    X_clf, y_clf = make_classification(n_samples=100, n_features=10, random_state=42)
+    X_train_clf, X_val_clf, y_train_clf, y_val_clf = train_test_split(X_clf, y_clf, test_size=0.2, random_state=42)
+    X_test_clf = rng.rand(20,10)
+    
+    clf_model_params = {'solver': 'liblinear', 'random_state': 42}
+    clf_fit_params = {}
+
+    try:
+        clf_model, clf_val_preds, clf_test_preds = _train_sklearn(
+            X_train_clf, y_train_clf, X_val_clf, y_val_clf, X_test_clf,
+            LogisticRegression, clf_model_params, clf_fit_params
+        )
+        print(f"Fitted Classifier: {type(clf_model)}")
+        if clf_val_preds is not None:
+            print(f"Validation preds (probs class 1) shape: {clf_val_preds.shape}, first 5: {clf_val_preds[:5]}")
+        if clf_test_preds is not None:
+            print(f"Test preds (probs class 1) shape: {clf_test_preds.shape}, first 5: {clf_test_preds[:5]}")
+            
+        # Test with predict_proba giving multiclass output (though LogisticRegression is binary here)
+        # For true multiclass, y_pred_valid/test would be [n_samples, n_classes]
+        # This part is more to test the ndim == 2 and shape[1] >=2 logic
+        if hasattr(clf_model, 'predict_proba'):
+            raw_probs_val = clf_model.predict_proba(X_val_clf)
+            print(f"Raw validation predict_proba output shape: {raw_probs_val.shape}")
+            
+    except Exception as e:
+        print(f"Error in classification example: {e}") 

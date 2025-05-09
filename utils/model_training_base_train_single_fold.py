@@ -15,10 +15,10 @@ import numpy as np
 from typing import Tuple, Optional, Dict, Any, List
 
 # Import internal trainers
-from ._train_lgbm import _train_lgbm
-from ._train_xgb import _train_xgb
-from ._train_sklearn import _train_sklearn # Import the new sklearn trainer
-from ._train_nn import _train_nn # Import the new NN trainer
+from ._train_lgbm import _train_lgbm # TODO: Check if this needs renaming too
+from ._train_xgb import _train_xgb # TODO: Check if this needs renaming too
+from ._train_sklearn import _train_sklearn # TODO: Check if this needs renaming too
+from ._train_nn import _train_nn # TODO: Check if this needs renaming too
 # Add imports for _train_catboost, _train_nn etc. if implemented
 
 # Import common sklearn models for mapping
@@ -155,4 +155,107 @@ def train_single_fold(
         cat_features=cat_features 
     )
 
-    return model, val_preds, test_preds 
+    return model, val_preds, test_preds
+
+
+if __name__ == '__main__':
+    # --- Example Usage --- 
+    print("Testing train_single_fold function...")
+    
+    # Create dummy data (Polars DataFrames)
+    N_train_fold, N_valid_fold, N_test_data, D_features = 100, 30, 50, 5
+    rng = np.random.RandomState(0)
+    
+    train_data_dict = {f'feat_{i}': rng.rand(N_train_fold) for i in range(D_features)}
+    train_data_dict['target'] = rng.rand(N_train_fold)
+    train_fold_pl = pl.DataFrame(train_data_dict)
+
+    valid_data_dict = {f'feat_{i}': rng.rand(N_valid_fold) for i in range(D_features)}
+    valid_data_dict['target'] = rng.rand(N_valid_fold)
+    valid_fold_pl = pl.DataFrame(valid_data_dict)
+
+    test_data_dict = {f'feat_{i}': rng.rand(N_test_data) for i in range(D_features)}
+    test_pl = pl.DataFrame(test_data_dict)
+
+    feature_names = [f'feat_{i}' for i in range(D_features)]
+    target_name = 'target'
+
+    # Example 1: LightGBM
+    print("\n--- Testing with LightGBM ---")
+    lgbm_model_params = {
+        'objective': 'regression_l1',
+        'metric': 'mae',
+        'n_estimators': 20, # Keep small for testing
+        'learning_rate': 0.1,
+        'num_leaves': 7,
+        'verbose': -1,
+        'n_jobs': -1,
+        'seed': 42
+    }
+    lgbm_fit_params = {
+        'eval_metric': 'mae',
+        'callbacks': [] # No early stopping for simplicity
+    }
+    try:
+        lgbm_model, lgbm_val_preds, lgbm_test_preds = train_single_fold(
+            train_fold_pl, valid_fold_pl, test_pl, target_name, feature_names,
+            model_type='lgbm', model_params=lgbm_model_params, fit_params=lgbm_fit_params
+        )
+        print(f"LGBM fitted model: {type(lgbm_model)}")
+        print(f"LGBM val_preds shape: {lgbm_val_preds.shape}, first 5: {lgbm_val_preds[:5]}")
+        if lgbm_test_preds is not None:
+            print(f"LGBM test_preds shape: {lgbm_test_preds.shape}, first 5: {lgbm_test_preds[:5]}")
+    except Exception as e:
+        print(f"Error during LGBM test: {e}")
+
+    # Example 2: Sklearn RandomForestRegressor
+    print("\n--- Testing with Sklearn RandomForestRegressor ---")
+    rf_model_params = {
+        'n_estimators': 15, # Small for testing
+        'max_depth': 5,
+        'random_state': 42,
+        'n_jobs': -1
+    }
+    rf_fit_params = {} # No special fit params for basic RF
+    try:
+        rf_model, rf_val_preds, rf_test_preds = train_single_fold(
+            train_fold_pl, valid_fold_pl, test_pl, target_name, feature_names,
+            model_type='rf_reg', model_params=rf_model_params, fit_params=rf_fit_params
+        )
+        print(f"RF fitted model: {type(rf_model)}")
+        print(f"RF val_preds shape: {rf_val_preds.shape}, first 5: {rf_val_preds[:5]}")
+        if rf_test_preds is not None:
+            print(f"RF test_preds shape: {rf_test_preds.shape}, first 5: {rf_test_preds[:5]}")
+    except Exception as e:
+        print(f"Error during RF test: {e}")
+
+    # Example 3: Simple Neural Network (MLP)
+    print("\n--- Testing with Simple MLP (NN) ---")
+    nn_model_params = {
+        'hidden_sizes': [16, 8],
+        'output_size': 1,
+        'dropout_rate': 0.1
+    }
+    nn_fit_params = {
+        'epochs': 10, # Short for testing
+        'batch_size': 16,
+        'lr': 0.01,
+        'optimizer': 'adam',
+        'loss_fn': 'mse',
+        'early_stopping_rounds': 3,
+        'device': 'cpu', # Force CPU for this example test
+        'verbose': 0 # No print during fit for test
+    }
+    try:
+        nn_model_state, nn_val_preds, nn_test_preds = train_single_fold(
+            train_fold_pl, valid_fold_pl, test_pl, target_name, feature_names,
+            model_type='nn', model_params=nn_model_params, fit_params=nn_fit_params
+        )
+        print(f"NN fitted model state keys: {list(nn_model_state.keys()) if isinstance(nn_model_state, dict) else 'N/A'}")
+        print(f"NN val_preds shape: {nn_val_preds.shape}, first 5: {nn_val_preds[:5]}")
+        if nn_test_preds is not None:
+            print(f"NN test_preds shape: {nn_test_preds.shape}, first 5: {nn_test_preds[:5]}")
+    except ImportError as ie:
+        print(f"ImportError during NN test (PyTorch likely not installed): {ie}")
+    except Exception as e:
+        print(f"Error during NN test: {e}") 

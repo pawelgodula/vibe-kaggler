@@ -75,4 +75,57 @@ def sample_dataframe(
         except Exception as e:
             # Catch potential Polars errors
             print(f"Error during DataFrame sampling: {e}")
-            raise 
+            raise
+
+
+if __name__ == '__main__':
+    # Example Usage
+    data = {
+        'id': list(range(1, 101)),
+        'value': [i * 10 for i in range(1, 101)]
+    }
+    example_df = pl.DataFrame(data)
+    print("Original DataFrame:")
+    print(example_df.head())
+    print(f"Shape: {example_df.shape}")
+
+    # --- Sample N rows --- 
+    print("\n--- Sampling 5 rows (shuffle=True, with seed) ---")
+    sampled_n = sample_dataframe(example_df, n=5, random_state=42)
+    print(sampled_n)
+    print(f"Shape: {sampled_n.shape}")
+
+    # --- Sample Fraction of rows --- 
+    print("\n--- Sampling 20% of rows (shuffle=True, no seed) ---")
+    sampled_frac = sample_dataframe(example_df, frac=0.2)
+    print(sampled_frac.head())
+    print(f"Shape: {sampled_frac.shape}")
+
+    # --- Sample without shuffle (head) --- 
+    print("\n--- Sampling first 3 rows (shuffle=False) ---")
+    sampled_no_shuffle_n = sample_dataframe(example_df, n=3, shuffle=False)
+    print(sampled_no_shuffle_n)
+    
+    print("\n--- Sampling first 10% of rows (shuffle=False) ---")
+    sampled_no_shuffle_frac = sample_dataframe(example_df, frac=0.1, shuffle=False)
+    print(sampled_no_shuffle_frac)
+    print(f"Shape: {sampled_no_shuffle_frac.shape}")
+
+    # --- Error Cases ---
+    print("\n--- Error Cases ---")
+    try:
+        sample_dataframe(example_df, n=5, frac=0.1)
+    except ValueError as e:
+        print(f"Caught expected error: {e}")
+    try:
+        sample_dataframe(example_df)
+    except ValueError as e:
+        print(f"Caught expected error: {e}")
+    try:
+        sample_dataframe(example_df, frac=1.5)
+    except ValueError as e:
+        print(f"Caught expected error: {e}")
+    try:
+        sample_dataframe(example_df, n=200)
+    except ValueError as e:
+        print(f"Caught expected error: {e}") 

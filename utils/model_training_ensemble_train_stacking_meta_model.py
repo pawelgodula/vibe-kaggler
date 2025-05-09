@@ -21,10 +21,10 @@ from typing import Tuple, Optional, Dict, Any, List
 # Import the necessary dispatcher/trainers
 # We might need train_single_fold if we want to allow complex meta-models with validation
 # Or directly use the internal trainers like _train_sklearn, _train_lgbm etc.
-from ._train_sklearn import _train_sklearn 
-from ._train_lgbm import _train_lgbm
-from ._train_xgb import _train_xgb
-# from ._train_nn import _train_nn
+from ._train_sklearn import _train_sklearn # TODO: Check if this needs renaming too
+from ._train_lgbm import _train_lgbm # TODO: Check if this needs renaming too
+from ._train_xgb import _train_xgb # TODO: Check if this needs renaming too
+# from ._train_nn import _train_nn # TODO: Check if this needs renaming too
 
 # Import common sklearn models for mapping (similar to train_single_fold)
 from sklearn.linear_model import LogisticRegression, Ridge # Common meta-models
@@ -142,4 +142,95 @@ def train_stacking_meta_model(
     except Exception as e:
         raise ValueError(f"Failed to train or predict with meta-model {meta_model_type}: {e}") from e
 
-    return final_test_preds, fitted_meta_model 
+    return final_test_preds, fitted_meta_model
+
+
+if __name__ == '__main__':
+    # --- Example Usage --- 
+    print("Testing train_stacking_meta_model function...")
+    
+    N_samples = 100
+    N_test = 50
+    N_base_models = 3
+    rng = np.random.RandomState(42)
+
+    # Create dummy OOF predictions (features for meta-model)
+    oof_dict = {}
+    for i in range(N_base_models):
+        oof_dict[f'base_model_{i+1}_oof'] = rng.rand(N_samples)
+    oof_df = pl.DataFrame(oof_dict)
+
+    # Create dummy true target values
+    true_target = pl.Series("target", rng.rand(N_samples) + 
+                                     0.5 * oof_df['base_model_1_oof'] + 
+                                     0.3 * oof_df['base_model_2_oof'] + 
+                                     0.2 * oof_df['base_model_3_oof'])
+
+    # Create dummy test predictions from base models
+    test_pred_dict = {}
+    for i in range(N_base_models):
+        test_pred_dict[f'base_model_{i+1}_oof'] = rng.rand(N_test) # Column names MUST match oof_df
+    test_df = pl.DataFrame(test_pred_dict)
+
+    print("\nOOF Predictions (Meta-Features):")
+    print(oof_df.head())
+    print("\nTrue Target:")
+    print(true_target.head().to_frame())
+    print("\nBase Model Test Predictions:")
+    print(test_df.head())
+
+    # Example 1: Linear Meta-Model (Ridge)
+    print("\n--- Testing with Linear Meta-Model (Ridge) ---")
+    linear_model_params = {'alpha': 1.0}
+    linear_fit_params = {}
+    try:
+        linear_test_preds, linear_meta_model = train_stacking_meta_model(
+            oof_df, true_target, test_df, 
+            meta_model_type='ridge', 
+            model_params=linear_model_params, 
+            fit_params=linear_fit_params
+        )
+        print(f"Linear meta-model fitted: {type(linear_meta_model)}")
+        print(f"Linear meta-model coefs: {linear_meta_model.coef_ if hasattr(linear_meta_model, 'coef_') else 'N/A'}")
+        print(f"Final test predictions (linear meta) shape: {linear_test_preds.shape}, first 5: {linear_test_preds[:5]}")
+    except Exception as e:
+        print(f"Error during Linear meta-model test: {e}")
+
+    # Example 2: LGBM Meta-Model
+    print("\n--- Testing with LGBM Meta-Model ---")
+    lgbm_meta_model_params = {
+        'objective': 'regression_l1',
+        'metric': 'mae',
+        'n_estimators': 30, # Small for example
+        'learning_rate': 0.05,
+        'num_leaves': 5,
+        'verbose': -1,
+        'n_jobs': -1,
+        'seed': 43
+    }
+    lgbm_meta_fit_params = {'callbacks': []}
+    try:
+        lgbm_test_preds, lgbm_meta_model = train_stacking_meta_model(
+            oof_df, true_target, test_df, 
+            meta_model_type='lgbm', 
+            model_params=lgbm_meta_model_params, 
+            fit_params=lgbm_meta_fit_params
+        )
+        print(f"LGBM meta-model fitted: {type(lgbm_meta_model)}")
+        # print(f"LGBM feature importances: {lgbm_meta_model.feature_importances_}")
+        print(f"Final test predictions (LGBM meta) shape: {lgbm_test_preds.shape}, first 5: {lgbm_test_preds[:5]}")
+    except Exception as e:
+        print(f"Error during LGBM meta-model test: {e}")
+
+    # Example 3: Error case - Mismatched columns in test_predictions
+    print("\n--- Testing Error Case: Mismatched Test Columns ---")
+    test_df_mismatch = test_df.rename({'base_model_1_oof': 'mismatched_col_name'})
+    try:
+        train_stacking_meta_model(
+            oof_df, true_target, test_df_mismatch, 
+            meta_model_type='ridge', model_params={}, fit_params={}
+        )
+    except ValueError as ve:
+        print(f"Caught expected ValueError: {ve}")
+    except Exception as e:
+        print(f"Caught unexpected error: {e}") 

@@ -31,4 +31,4 @@ def load_csv(file_path: str, **kwargs: Any) -> pl.DataFrame:
     except Exception as e:
         # Consider logging the error
         print(f"Error loading CSV file {file_path} with Polars: {e}")
-        raise 
+        raise

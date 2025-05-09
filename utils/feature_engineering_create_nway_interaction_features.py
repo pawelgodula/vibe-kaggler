@@ -125,4 +125,4 @@ def create_nway_interaction_features(
         else:
              df_interactions = pl.DataFrame()
 
-    return df_interactions
+    return df_interactions 

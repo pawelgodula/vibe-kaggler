@@ -261,5 +261,74 @@ def _train_nn(
         # Reshape regression outputs
         elif is_regression and y_pred_test.ndim == 2 and y_pred_test.shape[1] == 1:
              y_pred_test = y_pred_test.flatten()
-            
-    return best_model_state_dict, y_pred_valid, y_pred_test 
+             
+    return best_model_state_dict, y_pred_valid, y_pred_test
+
+
+if __name__ == '__main__':
+    # --- Example Usage --- 
+    print("Testing _train_nn function...")
+    
+    # Sample data (mimicking a regression task)
+    N_train, N_valid, N_test, D_features = 200, 50, 50, 10
+    X_train_np = np.random.rand(N_train, D_features).astype(np.float32)
+    y_train_np = np.random.rand(N_train).astype(np.float32) * 10
+    X_valid_np = np.random.rand(N_valid, D_features).astype(np.float32)
+    y_valid_np = np.random.rand(N_valid).astype(np.float32) * 10
+    X_test_np = np.random.rand(N_test, D_features).astype(np.float32)
+    feature_names = [f'feat_{i}' for i in range(D_features)]
+
+    model_p = {
+        'hidden_sizes': [32, 16],
+        'output_size': 1,
+        'dropout_rate': 0.1
+    }
+    fit_p = {
+        'epochs': 20, # Short for testing
+        'batch_size': 32,
+        'lr': 0.01,
+        'optimizer': 'adam',
+        'loss_fn': 'mse',
+        'early_stopping_rounds': 5,
+        'device': 'auto', # 'cpu' or 'cuda'
+        'verbose': 2 # Print every 2 epochs
+    }
+
+    print("\n--- Training Regression MLP ---")
+    best_state, val_preds, test_preds = _train_nn(
+        X_train_np, y_train_np, X_valid_np, y_valid_np, X_test_np,
+        model_params=model_p, fit_params=fit_p, feature_cols=feature_names
+    )
+    print(f"Best model state keys: {list(best_state.keys())}")
+    if val_preds is not None:
+        print(f"Validation predictions shape: {val_preds.shape}, first 5: {val_preds[:5]}")
+    if test_preds is not None:
+        print(f"Test predictions shape: {test_preds.shape}, first 5: {test_preds[:5]}")
+
+    # Sample data (mimicking a binary classification task)
+    y_train_bin_np = (np.random.rand(N_train) > 0.5).astype(np.float32)
+    y_valid_bin_np = (np.random.rand(N_valid) > 0.5).astype(np.float32)
+    model_p_clf = {
+        'hidden_sizes': [32, 16],
+        'output_size': 1, # Single output for BCEWithLogitsLoss
+        'dropout_rate': 0.1
+    }
+    fit_p_clf = {
+        'epochs': 15,
+        'batch_size': 32,
+        'lr': 0.01,
+        'optimizer': 'adam',
+        'loss_fn': 'bce', # Binary Cross-Entropy
+        'early_stopping_rounds': 3,
+        'device': 'auto',
+        'verbose': 2
+    }
+    print("\n--- Training Binary Classification MLP ---")
+    best_state_clf, val_preds_clf, test_preds_clf = _train_nn(
+        X_train_np, y_train_bin_np, X_valid_np, y_valid_bin_np, X_test_np,
+        model_params=model_p_clf, fit_params=fit_p_clf, feature_cols=feature_names
+    )
+    if val_preds_clf is not None:
+        print(f"Validation class probabilities shape: {val_preds_clf.shape}, first 5: {val_preds_clf[:5]}")
+    if test_preds_clf is not None:
+        print(f"Test class probabilities shape: {test_preds_clf.shape}, first 5: {test_preds_clf[:5]}") 
